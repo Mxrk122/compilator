@@ -1,17 +1,25 @@
-from graphviz import Digraph
+import pydot
+import graphviz
+from NFA import *
 
-# Crear un objeto Digraph
-f = Digraph('finite_state_machine', filename='afn.gv')
+def draw(afn: AFN):
+    # crear grafico
+    dot = graphviz.Digraph()
+    dot.attr('node', shape='circle')
+    dot.attr('edge', arrowhead='vee')
+    dot.node('start', shape='none', label='')
 
-# Agregar los estados al grafo
-f.attr(rankdir='LR')
-f.attr('node', shape='doublecircle')
-f.node('1')
-f.attr('node', shape='circle')
-f.node('2')
+    # Escribir AFN
 
-# Agregar las transiciones
-f.edge('1', '2', label='a')
-
-# Mostrar el grafo
-print(f.source)
+    for s in afn.transitions:
+        if s == afn.start:
+            dot.edge('start', str(s))
+        if s == afn.final:
+            dot.node(str(s), shape='doublecircle')
+        else:
+            dot.node(str(s))
+        for a in afn.transitions[s]:
+            for t in afn.transitions[s][a]:
+                dot.edge(str(s), str(t), label=a)
+    
+    dot.render('result_afn', format='png')

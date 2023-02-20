@@ -1,5 +1,15 @@
 from collections import deque
 
+class AFN(object):
+    def __init__(self, regex, start, final, transitions: dict) -> None:
+        self.regex = regex
+        self.start = start
+        self.final = final
+        self.transitions = transitions
+    
+    def __str__(self) -> str:
+        return f"Regex: {self.regex}, start: {self.start}, final: {self.final}, transitions: {self.transitions}"
+
 class State:
     #el propio estado controla sus transiciones
     def __init__(self, name, transitions=None):
@@ -26,7 +36,7 @@ class State:
         for transition in self.transitions:
             print(transition[0], transition[1])
 
-class NFA:
+class NFA_creation:
     def __init__(self, name, start, accept, states=None):
         self.name = name
         self.start = start
@@ -59,10 +69,11 @@ class NFA:
 # crear estados segun se requiera
 q = []
 for i in range(100):
-    value = "q"+str(i)
+    value = str(i)
     q.append(value)
 
 def regex_to_nfa(postfix):
+    epsilon = "E"
     stack = deque()
     i = 0
     for symbol in postfix:
@@ -84,7 +95,7 @@ def regex_to_nfa(postfix):
             for state in nfa2.states:
                 states.append(state)
 
-            concat_AFN = NFA("concat", nfa1.start, nfa2.accept, states)
+            concat_AFN = NFA_creation("concat", nfa1.start, nfa2.accept, states)
             concat_AFN.reload()
             stack.append(concat_AFN)
 
@@ -95,17 +106,17 @@ def regex_to_nfa(postfix):
 
             # crear estados para separar el camino
             start = State(q.pop(0))
-            start.add_transition(nfa1.start, "Epsilon")
-            start.add_transition(nfa2.start, "Epsilon")
+            start.add_transition(nfa1.start, epsilon)
+            start.add_transition(nfa2.start, epsilon)
             accept = State(q.pop(0))
-            nfa1.accept.add_transition(accept, "Epsilon")
-            nfa2.accept.add_transition(accept, "Epsilon")
+            nfa1.accept.add_transition(accept, epsilon)
+            nfa2.accept.add_transition(accept, epsilon)
 
             states = nfa1.states
             for state in nfa2.states:
                 states.append(state)
 
-            new_afn = NFA("or", start, accept, states)
+            new_afn = NFA_creation("or", start, accept, states)
             new_afn.reload_or()
             stack.append(new_afn)
 
@@ -114,14 +125,14 @@ def regex_to_nfa(postfix):
             nfa = stack.pop()
             start = State(q.pop(0))
             accept = State(q.pop(0))
-            start.add_transition(nfa.start, 'Epsilon')
-            start.add_transition(accept, 'Epsilon')
-            nfa.accept.add_transition(nfa.start, 'Epsilon')
-            nfa.accept.add_transition(accept, 'Epsilon')
+            start.add_transition(nfa.start, epsilon)
+            start.add_transition(accept, epsilon)
+            nfa.accept.add_transition(nfa.start, epsilon)
+            nfa.accept.add_transition(accept, epsilon)
 
             states = nfa.states
 
-            new_afn = NFA("kleene", start, accept, states)
+            new_afn = NFA_creation("kleene", start, accept, states)
             new_afn.reload_or()
             stack.append(new_afn)
         elif symbol == '+':
@@ -137,7 +148,7 @@ def regex_to_nfa(postfix):
             states.append(start)
             states.append(accept)
 
-            new_afn = NFA("one or more", start, accept, states)
+            new_afn = NFA_creation("one or more", start, accept, states)
             new_afn.reload_or()
             stack.append(new_afn)
         elif symbol == '?':
@@ -153,7 +164,7 @@ def regex_to_nfa(postfix):
             states.append(start)
             states.append(accept)
 
-            new_afn = NFA("zero or one", start, accept, states)
+            new_afn = NFA_creation("zero or one", start, accept, states)
             new_afn.reload_or()
             stack.append(new_afn)
         else:
@@ -161,13 +172,33 @@ def regex_to_nfa(postfix):
             final_state = State(q.pop(0))
             first_state = State(q.pop(0), [(final_state, symbol)])
             # escribir el NFA resultante:
-            simple_NFA = NFA("simple", first_state, final_state, [first_state, final_state])
+            simple_NFA = NFA_creation("simple", first_state, final_state, [first_state, final_state])
             stack.append(simple_NFA)
 
         i += 1
     if len(stack) > 1:
         return None
     else:
-        return stack.pop()
+        # el AFN se ha creado correctamente, devolver una AFN
+        afn = stack.pop()
+        print("AFN resultante:")
+        regex = "(a|b)*"
+        start = afn.start.name
+        final = afn.accept.name
+        transitions = {}
+        print("estados:")
+        for state in afn.states:
+            print(state)
+            transitions[state.name] = {}
+            for transition in state.transitions:
+                # Añadir transiciones al diccionario
+                print(transition[0], transition[1])
+                transitions[state.name][transition[1]] = []
+            for transition in state.transitions:
+                # Añadir transiciones al diccionario
+                print(transition[0], transition[1])
+                transitions[state.name][transition[1]].append(transition[0].name)
+
+        return AFN(regex, start, final, transitions)
 
 

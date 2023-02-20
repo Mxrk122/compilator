@@ -1,4 +1,5 @@
-from afn import *
+from NFA import *
+from graph import *
 
 def add_concatenation(regex):
     new_regex = ''
@@ -54,18 +55,10 @@ def postfix(regex):
     return postfix
 
 #regex = add_concatenation("(a|b)*abb")
-regex = add_concatenation("a|(a*|b*)")
+regex = add_concatenation("(a|b)*abb(a|b*)")
 regex_postfix = postfix(regex)
 print(regex_postfix)
 
-afn: NFA = regex_to_nfa(regex_postfix)
-print("AFN resultante:")
-print("estado inicial: ", afn.start)
-print("estado final: ", afn.accept)
-print("estados: ")
-for state in afn.states:
-    print(state)
-    print("transiciones: ")
-    for transition in state.transitions:
-        print(transition[0], transition[1])
-    print("\n")
+afn: AFN = regex_to_nfa(regex_postfix)
+print(afn)
+draw(afn)
