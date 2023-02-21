@@ -5,8 +5,8 @@ from utils.postfix import *
 from AFD import *
 
 #regex = add_concatenation("a(aab*|bba*)*b|baba")
-regex = add_concatenation("0?(1?)?0*")
-#regex = add_concatenation("(a*|b*)c")
+#regex = add_concatenation("0?(1?)?0*")
+regex = add_concatenation("(a*|b*)c")
 #regex = add_concatenation("(b|b)*abb(a|b)*")
 #regex = add_concatenation("(a|E)b(a+)c?")
 #regex = add_concatenation("(a|b)*a(a|b)(a|b)")

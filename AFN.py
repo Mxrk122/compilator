@@ -88,8 +88,12 @@ def regex_to_nfa(postfix, regex):
         if symbol == '.':
             # AFN de concaatenacion se trat de unir 2 AFNS
             # se une el estado final del primero al principio del segundo
-            nfa2 = stack.pop()
-            nfa1 = stack.pop()
+            try:
+                nfa2 = stack.pop()
+                nfa1 = stack.pop()
+            except:
+                print("Error en el simbolo: ", symbol, "Has ingresado una expresion invalida")
+                raise f"Error en el simbolo:{symbol} Has ingresado una expresion invalida"
             # extraer el estado final del segundo AFN 
             # unirlo con el estado final del primer AFN con toda su info
             new_state = nfa2.states.pop(0)
@@ -106,8 +110,12 @@ def regex_to_nfa(postfix, regex):
 
         elif symbol == '|':
             # Afn de or se trata de separar el camino para elegir 2 afns diferentes
-            nfa2 = stack.pop()
-            nfa1 = stack.pop()
+            try:
+                nfa2 = stack.pop()
+                nfa1 = stack.pop()
+            except:
+                print("Error en el simbolo: ", symbol, "Has ingresado una expresion invalida")
+                raise f"Error en el simbolo -{symbol} Has ingresado una expresion invalida"
 
             # crear estados para separar el camino
             start = State(q.pop(0))
@@ -119,7 +127,7 @@ def regex_to_nfa(postfix, regex):
 
             states = nfa1.states
             for state in nfa2.states:
-                states.append(state)
+                states.append(state) 
 
             new_afn = NFA_creation("or", start, accept, states)
             new_afn.reload_or()

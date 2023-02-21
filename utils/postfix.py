@@ -2,9 +2,11 @@ from AFN import *
 
 def add_concatenation(regex):
     new_regex = ''
+
     for i in range(len(regex)):
         # Agregar el caracter actual
         new_regex += regex[i]
+
         # Comprobar si es necesario agregar el operador de concatenación
         if i < len(regex) - 1 and regex[i] not in '|(' and regex[i + 1] not in '|*)?+':
             new_regex += '.'
