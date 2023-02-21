@@ -1,5 +1,4 @@
-from NFA import *
-from graph import *
+from AFN import *
 
 def add_concatenation(regex):
     new_regex = ''
@@ -10,6 +9,17 @@ def add_concatenation(regex):
         if i < len(regex) - 1 and regex[i] not in '|(' and regex[i + 1] not in '|*)?+':
             new_regex += '.'
     return new_regex
+
+def precedence(symbol, other):
+    operadores = ["|",".", "+", "*", "?", "("]
+
+    if symbol in "?+*" and other in "?+*":
+        return False
+    
+    if operadores.index(symbol) < operadores.index(other):
+        return True
+    
+    return False
 
 def postfix(regex):
     # Pila de operadores y expresión resultante
@@ -45,7 +55,7 @@ def postfix(regex):
                 op_stack += symbol
             else:
                 # si la prioridad es mayor, simplemente meterlo al stack de operadores
-                if operadores.index(op_stack[-1]) < operadores.index(symbol):
+                if precedence(op_stack[-1], symbol):
                     op_stack += symbol
                 # Si la prioridad es menor o igual, sacar     
                 else:
@@ -53,12 +63,3 @@ def postfix(regex):
                     op_stack += symbol
             
     return postfix
-
-#regex = add_concatenation("(a|b)*abb")
-regex = add_concatenation("(a|b)*abb(a|b*)")
-regex_postfix = postfix(regex)
-print(regex_postfix)
-
-afn: AFN = regex_to_nfa(regex_postfix)
-print(afn)
-draw(afn)

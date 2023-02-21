@@ -1,15 +1,20 @@
 from collections import deque
+import graphviz
+from utils.set import *
 
 class AFN(object):
-    def __init__(self, regex, start, final, transitions: dict) -> None:
+    def __init__(self, regex, alphabet, states, start, final, transitions: dict) -> None:
         self.regex = regex
+        self.alphabet = alphabet
+        self.states = states
         self.start = start
         self.final = final
         self.transitions = transitions
     
     def __str__(self) -> str:
-        return f"Regex: {self.regex}, start: {self.start}, final: {self.final}, transitions: {self.transitions}"
+        return f"Regex: {self.regex}, states: {self.states}, start: {self.start}, final: {self.final}, transitions: {self.transitions}"
 
+# Clases para crear el AFN
 class State:
     #el propio estado controla sus transiciones
     def __init__(self, name, transitions=None):
@@ -72,7 +77,7 @@ for i in range(100):
     value = str(i)
     q.append(value)
 
-def regex_to_nfa(postfix):
+def regex_to_nfa(postfix, regex):
     epsilon = "E"
     stack = deque()
     i = 0
@@ -141,12 +146,10 @@ def regex_to_nfa(postfix):
             nfa = stack.pop()
             start = State(q.pop(0))
             accept = State(q.pop(0))
-            start.add_transition(nfa.start, 'Epsilon')
-            nfa.accept.add_transition(nfa.start, 'Epsilon')
-            nfa.accept.add_transition(accept, 'Epsilon')
+            start.add_transition(nfa.start, epsilon)
+            nfa.accept.add_transition(nfa.start, epsilon)
+            nfa.accept.add_transition(accept, epsilon)
             states = nfa.states
-            states.append(start)
-            states.append(accept)
 
             new_afn = NFA_creation("one or more", start, accept, states)
             new_afn.reload_or()
@@ -157,12 +160,10 @@ def regex_to_nfa(postfix):
             nfa = stack.pop()
             start = State(q.pop(0))
             accept = State(q.pop(0))
-            start.add_transition(nfa.start, 'Epsilon')
-            start.add_transition(accept, 'Epsilon')
-            nfa.accept.add_transition(accept, 'Epsilon')
+            start.add_transition(nfa.start, epsilon)
+            start.add_transition(accept, epsilon)
+            nfa.accept.add_transition(accept, epsilon)
             states = nfa.states
-            states.append(start)
-            states.append(accept)
 
             new_afn = NFA_creation("zero or one", start, accept, states)
             new_afn.reload_or()
@@ -181,24 +182,45 @@ def regex_to_nfa(postfix):
     else:
         # el AFN se ha creado correctamente, devolver una AFN
         afn = stack.pop()
-        print("AFN resultante:")
-        regex = "(a|b)*"
+        alphabet = PersonalSet([*list(regex)]).get_content()
+        alphabet.append("E")
         start = afn.start.name
         final = afn.accept.name
+        states = []
         transitions = {}
-        print("estados:")
         for state in afn.states:
-            print(state)
             transitions[state.name] = {}
+            states.append(state.name)
+            # crear las transiciones para todo el alfabeto
+            for symbol in list(alphabet):
+                transitions[state.name][symbol] = []
             for transition in state.transitions:
                 # Añadir transiciones al diccionario
-                print(transition[0], transition[1])
-                transitions[state.name][transition[1]] = []
-            for transition in state.transitions:
-                # Añadir transiciones al diccionario
-                print(transition[0], transition[1])
                 transitions[state.name][transition[1]].append(transition[0].name)
 
-        return AFN(regex, start, final, transitions)
+        return AFN(regex, alphabet, states, start, final, transitions)
+    
+    
+def draw(afn: AFN):
+    # crear grafico
+    dot = graphviz.Digraph()
+    dot.attr('node', shape='circle')
+    dot.attr('edge', arrowhead='vee')
+    dot.node('start', shape='none', label='')
+
+    # Escribir AFN
+
+    for s in afn.transitions:
+        if s == afn.start:
+            dot.edge('start', str(s))
+        if s == afn.final:
+            dot.node(str(s), shape='doublecircle')
+        else:
+            dot.node(str(s))
+        for a in afn.transitions[s]:
+            for t in afn.transitions[s][a]:
+                dot.edge(str(s), str(t), label=a)
+    
+    dot.render('result_afn', format='png')
 
 
